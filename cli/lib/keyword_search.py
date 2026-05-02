@@ -3,12 +3,20 @@ from .search_utils import DEFAULT_SEARCH_LIMIT, load_movies
 def search_command(query: str, limit: int = DEFAULT_SEARCH_LIMIT) -> list[dict]:
     movies = load_movies()
     results = []
-    query = query.lower()
+    # 
+    preprocessed_query = preprocess_text(query)
     # 
     for movie in movies:
-        title = movie["title"].lower()
-        if query in title:
+        title = movie["title"]
+        preprocessed_title = preprocess_text(title)
+        if preprocessed_query in preprocessed_title:
             results.append(movie)
             if len(results) >= limit:
                 break    
     return results
+
+#
+def preprocess_text(text: str) -> str:
+    text = text.lower()
+    return text 
+#  
