@@ -1,6 +1,6 @@
 import string
 # 
-from .search_utils import DEFAULT_SEARCH_LIMIT, load_movies, load_stop_words
+from .search_utils import DEFAULT_SEARCH_LIMIT, load_movies, load_stopwords
 # 
 def search_command(query: str, limit: int = DEFAULT_SEARCH_LIMIT) -> list[dict]:
     movies = load_movies()
@@ -45,7 +45,6 @@ def has_matching_token(query_tokens: list[str], search_tokens: list[str]) -> boo
     return False
 # 
 def remove_stop_words(tokens: list[str]) -> list[str]:
-    stopwords = load_stop_words()
+    stopwords = load_stopwords()
     return list(filter(lambda t: t not in stopwords, tokens))
-
 # 
