@@ -8,17 +8,11 @@ def search_command(query: str, limit: int = DEFAULT_SEARCH_LIMIT) -> list[dict]:
     movies = load_movies()
     results = []
     # 
-    preprocessed_query = preprocess_text(query)
-    query_tokens = tokenize_text(preprocessed_query)
-    query_tokens = remove_stop_words(query_tokens)
-    query_tokens = stemification(query_tokens)
+    query_tokens = prep_text(query)
     # Matching logic 
     for movie in movies:
         title = movie["title"]
-        preprocessed_title = preprocess_text(title)
-        title_tokens = tokenize_text(preprocessed_title)
-        title_tokens = remove_stop_words(title_tokens)
-        title_tokens = stemification(title_tokens)
+        title_tokens = prep_text(title)
         #
         if has_matching_token(query_tokens, title_tokens):
             results.append(movie)
@@ -60,4 +54,10 @@ def stemification(token_list: list[str]) -> list[str]:
     #  
     return stems
 # 
-
+def prep_text(text:str) -> list[str]:
+    remove_punctuation = preprocess_text(text) 
+    tokenize = tokenize_text(remove_punctuation)
+    remove_stopwords = remove_stop_words(tokenize)
+    stemify = stemification(remove_stopwords)
+    return stemify
+# 
