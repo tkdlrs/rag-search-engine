@@ -4,7 +4,7 @@ import pickle
 # 
 from collections import defaultdict
 # 
-from .keyword_search import prep_text 
+from .text_preparation import prep_text 
 # 
 from .search_utils import (
     CACHE_DIR, 
@@ -60,11 +60,24 @@ class InvertedIndex:
         for token in set(tokens):
             self.index[token].add(doc_id)
     # 
+    def load(self) -> None:
+        # Get index
+        try:
+            with open(self.index_path, 'rb') as iFile:
+                self.index = pickle.load(iFile)
+        except Exception as e:
+            print(f"An error occurred while loading the pickled index_path: {e}")
+        # Get Docmap
+        try:
+            with open(self.docmap_path, 'rb') as dFile:
+                self.docmap = pickle.load(dFile)
+        except Exception as e: 
+            print(f"An error occurred while loading the pickled dockmap_path: {e}")
+        # 
+        return
 #      
 def build_command() -> None:
      idx = InvertedIndex()
      idx.build()
-     idx.save()
-     docs = idx.get_documents("merida")
-     print(f"First document for the token 'merida' = {docs[0]}")
+     idx.save()     
 # 
