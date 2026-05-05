@@ -12,18 +12,19 @@ def search_command(query: str, limit: int = DEFAULT_SEARCH_LIMIT) -> list[dict]:
     except FileExistsError:
         print(f"file not found")
     # 
-    results = []
-    # 
     query_tokens = prep_text(query)
+    seen, results = set(), []
     # Matching logic 
-    for qt in query_tokens:
-        if len(results) >= limit:
-            break
+    for query_token in query_tokens:
+        matching_doc_ids = idx.get_documents(query_token)
         # 
-        qts_matches = idx.get_documents(qt)
-        if len(qts_matches):
-            for match in qts_matches:
-                results.append(idx.docmap[match])
+        if len(matching_doc_ids):
+            for doc_id in matching_doc_ids:
+                if doc_id in seen:
+                    continue
+                seen.add(doc_id)
+                doc = idx.docmap[doc_id]
+                results.append(doc)
                 if len(results) >= limit:
                     return results 
     # 

@@ -63,13 +63,13 @@ class InvertedIndex:
     def load(self) -> None:
         # Get index
         try:
-            with open(self.index_path, 'rb') as iFile:
+            with open(self.index_path, "rb") as iFile:
                 self.index = pickle.load(iFile)
         except Exception as e:
             print(f"An error occurred while loading the pickled index_path: {e}")
         # Get Docmap
         try:
-            with open(self.docmap_path, 'rb') as dFile:
+            with open(self.docmap_path,"rb") as dFile:
                 self.docmap = pickle.load(dFile)
         except Exception as e: 
             print(f"An error occurred while loading the pickled dockmap_path: {e}")
