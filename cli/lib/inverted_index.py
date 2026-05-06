@@ -16,10 +16,10 @@ class InvertedIndex:
     def __init__(self) -> None:
         self.index = defaultdict(set)
         self.docmap: dict[int, dict] = {}
-        self.term_frequencies: dict[int, Counter] = {}
         self.index_path = os.path.join(CACHE_DIR, "index.pkl")
         self.docmap_path = os.path.join(CACHE_DIR, "docmap.pkl")
         self.tf_path = os.path.join(CACHE_DIR, "term_frequencies.pkl")
+        self.term_frequencies = defaultdict(Counter)
 
     # 
     def build(self) -> None:
@@ -64,11 +64,11 @@ class InvertedIndex:
     def __add_document(self, doc_id, text) -> None:
         # Tokenize input text
         tokens = prep_text(text)
-        # 
-        self.term_frequencies[doc_id] = Counter(tokens)
         # add each token to the index with the doc id
         for token in set(tokens):
             self.index[token].add(doc_id)
+        # 
+        self.term_frequencies[doc_id].update(tokens)
         # 
     # 
     def load(self) -> None:
@@ -93,13 +93,13 @@ class InvertedIndex:
         # 
         return
     # 
-    def get_tf(self, doc_id, term) -> int:
-        doc_id = int(doc_id)
-        term_token = prep_text(term)
-        if len(term_token) > 1:
-            raise Exception("invalid number of terms provided")
+    def get_tf(self, doc_id: int, term: str) -> int:
+        tokens = prep_text(term)
+        if len(tokens) != 1:
+            raise ValueError("term must be a single token")
+        token = tokens[0]
         # 
-        return self.term_frequencies[doc_id][term_token[0]]
+        return self.term_frequencies[doc_id][token]
     # 
 
 #      
@@ -108,8 +108,7 @@ def build_command() -> None:
      idx.build()
      idx.save()     
 # 
-def tf_command(doc_id, term) -> None:
+def tf_command(doc_id, term) -> int:
     idx = InvertedIndex()
     idx.load()
-    result = idx.get_tf(doc_id, term)
-    print(f"{result}")
+    return idx.get_tf(doc_id, term)

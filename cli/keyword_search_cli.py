@@ -15,9 +15,9 @@ def main() -> None:
     search_parser = subparsers.add_parser("search", help="Search movies using BM25")
     search_parser.add_argument("query", type=str, help="Search query")
     # 
-    term_freq = subparsers.add_parser("tf", help="Get a term frequency for a given term")
-    term_freq.add_argument("doc_id", type=str, help="Document ID")
-    term_freq.add_argument("term", type=str, help="Term")
+    tf_parser = subparsers.add_parser("tf", help="Get a term frequency for a given document ID and term")
+    tf_parser.add_argument("doc_id", type=int, help="Document ID")
+    tf_parser.add_argument("term", type=str, help="Term to get frequency for")
     # 
     args = parser.parse_args()
     # 
@@ -38,8 +38,8 @@ def main() -> None:
         case "tf":
             doc_id = args.doc_id
             term = args.term
-            print(f"looking up term frequency for \"{term}\" in Document with id number: {doc_id}")
-            tf_command(doc_id, term)
+            tf = tf_command(doc_id, term)
+            print(f"Term frequency of '{term}' in document '{doc_id}': {tf}")
             # 
         case _:
             parser.print_help()
