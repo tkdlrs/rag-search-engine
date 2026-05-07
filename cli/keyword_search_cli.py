@@ -4,7 +4,11 @@ import argparse
 # 
 from lib.keyword_search import search_command
 # 
-from lib.inverted_index import build_command, tf_command, idf_command
+from lib.inverted_index import (
+    build_command, 
+    tf_command, 
+    idf_command
+)
 # 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Keyword Search CLI")
@@ -19,7 +23,7 @@ def main() -> None:
     tf_parser.add_argument("doc_id", type=int, help="Document ID")
     tf_parser.add_argument("term", type=str, help="Term to get frequency for")
     # 
-    idf_parser = subparsers.add_parser("idf", help="Get an Inverse Document Frequency (IDF) for a given term")
+    idf_parser = subparsers.add_parser("idf", help="Get inverse document frequency for a given term")
     idf_parser.add_argument("term", type=str, help="Term to get IDF for" )
     # 
     args = parser.parse_args()

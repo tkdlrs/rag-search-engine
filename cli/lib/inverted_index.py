@@ -102,10 +102,14 @@ class InvertedIndex:
         # 
         return self.term_frequencies[doc_id][token]
     # 
-    def get_idf(self, term:str) -> int:
-        total_doc_count = len(self.docmap)
-        term_match_doc_count  = len(self.get_documents(term))
-        return math.log((total_doc_count + 1) / (term_match_doc_count + 1))
+    def get_idf(self, term:str) -> float:
+        tokens = prep_text(term)
+        if len(tokens) != 1:
+            raise ValueError("term must be a single token")
+        token = tokens[0]
+        doc_count = len(self.docmap)
+        term_doc_count = len(self.index[token])
+        return math.log((doc_count + 1) / (term_doc_count + 1))
 
 #      
 def build_command() -> None:
