@@ -1,6 +1,7 @@
 
 import os 
 import pickle
+import math
 # 
 from collections import defaultdict, Counter
 # 
@@ -101,6 +102,10 @@ class InvertedIndex:
         # 
         return self.term_frequencies[doc_id][token]
     # 
+    def get_idf(self, term:str) -> int:
+        total_doc_count = len(self.docmap)
+        term_match_doc_count  = len(self.get_documents(term))
+        return math.log((total_doc_count + 1) / (term_match_doc_count + 1))
 
 #      
 def build_command() -> None:
@@ -108,7 +113,13 @@ def build_command() -> None:
      idx.build()
      idx.save()     
 # 
-def tf_command(doc_id, term) -> int:
+def tf_command(doc_id:int, term:str) -> int:
     idx = InvertedIndex()
     idx.load()
     return idx.get_tf(doc_id, term)
+# 
+def idf_command(term:str) -> float:
+    idx = InvertedIndex()
+    idx.load()
+    return idx.get_idf(term)
+# 
