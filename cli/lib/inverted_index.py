@@ -122,8 +122,8 @@ class InvertedIndex:
             raise ValueError("term must be a single token")
         token = tokens[0]
         doc_count = len(self.docmap)
-        doc_frequence = len(self.index[token])
-        return math.log((doc_count - doc_frequence + 0.5) / (doc_frequence + 0.5) + 1)
+        term_doc_count = len(self.index[token])
+        return math.log((doc_count - term_doc_count + 0.5) / (term_doc_count + 0.5) + 1)
     # 
     # 
 
