@@ -8,7 +8,8 @@ from lib.inverted_index import (
     build_command, 
     tf_command, 
     idf_command,
-    tfidf_command
+    tfidf_command,
+    bm25_idf_command
 )
 # 
 def main() -> None:
@@ -30,6 +31,9 @@ def main() -> None:
     tf_idf_parser = subparsers.add_parser("tfidf", help="Get TF-IDF score for a given document ID and term") 
     tf_idf_parser.add_argument("doc_id", type=int, help="Document ID")
     tf_idf_parser.add_argument("term", type=str, help="Term to get TF-IDF score for")
+    # 
+    bm25_idf_parser = subparsers.add_parser("bm25idf", help="Get BM25 IDF score for a given term")
+    bm25_idf_parser.add_argument("term", type=str, help="Term to get BM25 IDF score for")
     # 
     args = parser.parse_args()
     # 
@@ -63,6 +67,11 @@ def main() -> None:
             term = args.term
             tf_idf = tfidf_command(doc_id, term)
             print(f"TF-IDF score of '{term}' in document '{doc_id}': {tf_idf:.2f}")
+            # 
+        case "bm25idf":
+            term = args.term
+            bm25_idf = bm25_idf_command(term)
+            print(f"BM25 IDF score of '{term}': {bm25_idf:.2f}")
             # 
         case _:
             parser.print_help()
