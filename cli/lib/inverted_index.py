@@ -62,7 +62,7 @@ class InvertedIndex:
             with open(self.doc_lengths_path, "wb") as f:
                 pickle.dump(self.doc_lengths, f)
         except Exception as e:
-            print(f"An error occurred while picling doc_lengths: {e}")
+            print(f"An error occurred while pickling doc_lengths: {e}")
         # 
         return
     # 
@@ -147,23 +147,27 @@ class InvertedIndex:
     def get_bm25_tf(self, doc_id: int, term: str, k1: float = BM25_K1, b: float = BM25_B) -> float:
         tf = self.get_tf(doc_id, term)
         # 
-        doc_length = self.doc_lengths[doc_id]
+        doc_length = self.doc_lengths.get(doc_id, 0)
         avg_doc_length = self.__get_avg_doc_length()
         # 
-        length_norm = 1 - b + b * (doc_length / avg_doc_length)
+        if avg_doc_length > 0:
+            length_norm = 1 - b + b * (doc_length / avg_doc_length)
+        else:
+            length_norm = 1
+        # 
         tf_component = (tf * (k1 + 1)) / (tf + k1 * length_norm)        
         # 
         return tf_component
     # 
     def __get_avg_doc_length(self) -> float:
-        if len(self.doc_lengths) == 0:
+        if not self.doc_lengths or len(self.doc_lengths) == 0:
             return 0.0
         # 
-        docs_sum = 0
-        for doc_len in self.doc_lengths:
-            docs_sum += doc_len
+        total_length = 0
+        for length in self.doc_lengths.values():
+            total_length += length
         # 
-        return docs_sum / len(self.doc_lengths)
+        return total_length / len(self.doc_lengths)
     # 
 
 #      
@@ -192,7 +196,7 @@ def bm25_idf_command(term: str) -> float:
     idx.load()
     return idx.get_bm25_idf(term)
 # 
-def bm25_tf_command(doc_id: int, term: str, k1: float, b: float) -> float:
+def bm25_tf_command(doc_id: int, term: str, k1: float = BM25_K1, b: float = BM25_B) -> float:
     idx = InvertedIndex()
     idx.load()
     return idx.get_bm25_tf(doc_id, term, k1, b)
