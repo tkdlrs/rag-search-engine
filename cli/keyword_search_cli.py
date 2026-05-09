@@ -11,8 +11,8 @@ from lib.inverted_index import (
     tfidf_command,
     bm25_idf_command,
     bm25_tf_command,
-    BM25_K1,
 )
+from lib.search_utils import BM25_K1
 # 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Keyword Search CLI")

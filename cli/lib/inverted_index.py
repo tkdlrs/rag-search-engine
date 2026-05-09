@@ -8,11 +8,10 @@ from collections import defaultdict, Counter
 from .text_preparation import prep_text 
 # 
 from .search_utils import (
+    BM25_K1,
     CACHE_DIR, 
     load_movies,
 )
-#
-BM25_K1 = 1.5
 #  
 class InvertedIndex:
     # 
@@ -127,9 +126,9 @@ class InvertedIndex:
         term_doc_count = len(self.index[token])
         return math.log((doc_count - term_doc_count + 0.5) / (term_doc_count + 0.5) + 1)
     # 
-    def get_bm25_tf(self, doc_id: int, term:str, k1=BM25_K1) -> float:
-        raw_tf = self.get_tf(doc_id, term)
-        return (raw_tf * (k1 + 1)) / (raw_tf + k1)
+    def get_bm25_tf(self, doc_id: int, term: str, k1: float = BM25_K1) -> float:
+        tf = self.get_tf(doc_id, term)
+        return (tf * (k1 + 1)) / (tf + k1)
     # 
     # 
 
