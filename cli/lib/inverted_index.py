@@ -10,8 +10,10 @@ from .text_preparation import prep_text
 from .search_utils import (
     BM25_K1,
     BM25_B,
+    DEFAULT_SEARCH_LIMIT,
     CACHE_DIR, 
     load_movies,
+    format_search_result,
 )
 #  
 class InvertedIndex:
@@ -168,8 +170,41 @@ class InvertedIndex:
             total_length += length
         # 
         return total_length / len(self.doc_lengths)
+    #
+    def bm25(self, doc_id: int, term: str) -> float:
+        bm25_tf_component = self.get_bm25_tf(doc_id, term)
+        bm25_idf_component = self.get_bm25_idf(term)
+        return bm25_tf_component * bm25_idf_component
+    #
+    def bm25_search(self, query: str, limit: int = DEFAULT_SEARCH_LIMIT) -> list[dict]:
+        # tokenize input 
+        query_tokens = prep_text(query)
+        # maps document IDs to total BM25 scores
+        scores = {}
+        for doc_id in self.docmap:
+            score = 0.0
+            for token in query_tokens:
+                score += self.bm25(doc_id, token)
+            scores[doc_id] = score
+            # 
+        # 
+        sorted_docs = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+        # 
+        results = []
+        for doc_id, score in sorted_docs[:limit]:
+            doc = self.docmap[doc_id]
+            formatted_result = format_search_result(
+                doc_id = doc["id"], 
+                title = doc["title"], 
+                document = doc["description"], 
+                score = score,
+            )
+            results.append(formatted_result)
+        # 
+        return results
     # 
-
+    # 
+# 
 #      
 def build_command() -> None:
      idx = InvertedIndex()
@@ -200,6 +235,11 @@ def bm25_tf_command(doc_id: int, term: str, k1: float = BM25_K1, b: float = BM25
     idx = InvertedIndex()
     idx.load()
     return idx.get_bm25_tf(doc_id, term, k1, b)
+# 
+def bm25search_command(query: str, limit: int = DEFAULT_SEARCH_LIMIT) -> list[dict]:
+    idx = InvertedIndex()
+    idx.load()
+    return idx.bm25_search(query, limit)
 # 
 # 
 
