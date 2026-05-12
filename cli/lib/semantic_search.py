@@ -1,25 +1,17 @@
-# 
-# 
 from sentence_transformers import SentenceTransformer 
-
-# Load the model (downloads auomatically the first time)
-# model = SentenceTransformer('all-MiniLM-l6-v2')
 # 
-# print(f"Model loaded: {model}")
-# print(f"Max sequence length: {model.max_seq_length}")
 # 
-# model.encode(text)
-
 # 
 class SemanticSearch:
-    # 
-    def __init__(self) -> None:
-        self.model = SentenceTransformer('all-MiniLM-l6-v2')
+    def __init__(self, model_name="all-MiniLM-l6-v2") -> None:
+        self.model = SentenceTransformer(model_name)
         # 
     # 
-
 # 
 def verify_model():
-    semanticSearch = SemanticSearch()
-    print(f"Model loaded: {semanticSearch.model}")
-    print(f"Max sequence length: {semanticSearch.model.max_seq_length}")
+    search_instance = SemanticSearch()
+    print(f"Model loaded: {search_instance.model}")
+    print(f"Max sequence length: {search_instance.model.max_seq_length}")
+# 
+# 
+# 
