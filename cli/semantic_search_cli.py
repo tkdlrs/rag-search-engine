@@ -10,8 +10,8 @@ def main():
     # 
     subparsers.add_parser("verify", help="Verify that the embedded model is loaded")
     # 
-    embed_text_parser = subparsers.add_parser("embed_text", help="Embed text")
-    embed_text_parser.add_argument("text", help="Text to be embedded")
+    single_embed_parser = subparsers.add_parser("embed_text", help="Generate an embedding for a single text")
+    single_embed_parser.add_argument("text", type=str, help="Text to embed")
     # 
     args = parser.parse_args()
     # 

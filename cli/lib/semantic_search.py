@@ -7,8 +7,8 @@ class SemanticSearch:
         self.model = SentenceTransformer(model_name)
         #
     def generate_embedding(self, text:str) -> str:
-        if text.strip() == "":
-            raise ValueError("text can not be empty")
+        if not text or not text.strip():
+            raise ValueError("cannot generate embedding for empty text")
         # 
         embedding = self.model.encode([text])
         return embedding[0]
