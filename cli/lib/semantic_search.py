@@ -5,6 +5,7 @@ from sentence_transformers import SentenceTransformer
 # 
 from .search_utils import (
     CACHE_DIR,
+    DEFAULT_SEARCH_LIMIT,
     load_movies,
 )
 
@@ -56,33 +57,32 @@ class SemanticSearch:
         # 
     #
     def search(self, query, limit):
-        if self.embeddings is None:
+        if self.embeddings is None or self.embeddings.size == 0:
             raise ValueError("No embeddings loaded. Call `load_or_create_embeddings` first.")
         # 
-        embedding = self.generate_embedding(query)
-        score_docs = []
-        for doc in self.documents:
-            similarity_score = cosine_similarity(doc, embedding)
-            score_doc = (similarity_score, doc)
-            score_docs.append(score_doc)
+        if self.documents is None or len(self.documents) == 0:
+            raise ValueError("No documents loaded. Call `load_or_create_embeddings` first.")
+        #         
+        query_embedding = self.generate_embedding(query)
         # 
-        score_docs.sort(reverse=True)
-        count = 0
+        similarities = []
+        for i, doc_embedding in enumerate(self.embeddings):
+            similarity = cosine_similarity(query_embedding, doc_embedding)
+            similarities.append((similarity, self.documents[i]))
+        # 
+        similarities.sort(key=lambda x: x[0], reverse=True)
+        # 
         results = []
-        for doc in score_docs:
-            if count >= limit:
-                break
-            # 
-            results.append({
-                "score": doc[0], 
-                "title": "tit",
-                "description": "des",
-                })
-            print(f"doc: {doc}")
-            count += 1
+        for score, doc in similarities[:limit]:
+            results.append(
+                {
+                    "score": score, 
+                    "title": doc["title"],
+                    "description": doc["description"],
+                }
+            )
         # 
         return results
-    # 
     #  
 # 
 def verify_model():
@@ -122,13 +122,20 @@ def cosine_similarity(vec1, vec2):
     return dot_product / (norm1 * norm2)
     # 
 # 
-def search_command(query:str, limit:int):
+def semantic_search(query:str, limit:int=DEFAULT_SEARCH_LIMIT):
     search_instance = SemanticSearch()
     documents = load_movies()
     search_instance.load_or_create_embeddings(documents)
     # 
     results = search_instance.search(query, limit)
-    for count, result in enumerate(results, start=1):
-        print(f"{count} {result["title"]} (score:{result["score"]}) \n   {result["description"]})")
+    # 
+    print(f"Query: {query}")
+    print(f"Top {len(results)} results:")
+    print()
+    # 
+    for i, result in enumerate(results, start=1):
+        print(f"{i}. {result["title"]} (score:{result["score"]:.4f})")
+        print(f"    {result["description"][:100]}...)")
+        print()
 
 #
