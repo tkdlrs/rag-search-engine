@@ -15,9 +15,9 @@ def main():
     # 
     subparsers.add_parser("verify_embeddings", help="Verify embeddings for the movie dataset")
     # 
-    embed_query_parser = subparsers.add_parser("embed_query", help="Generate an embedding for a query")
-    embed_query_parser.add_argument("query", type=str, help="Query to generate embed for")
-# 
+    embed_query_parser = subparsers.add_parser("embed_query", help="Generate an embedding for a search query")
+    embed_query_parser.add_argument("query", type=str, help="Query to embed")
+    # 
     args = parser.parse_args()
     # 
     match args.command:
