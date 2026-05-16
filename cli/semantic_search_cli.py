@@ -2,7 +2,12 @@
 
 import argparse 
 # 
-from lib.semantic_search import (verify_model, embed_text, verify_embeddings)
+from lib.semantic_search import (
+    embed_query_text,
+    embed_text,
+    verify_embeddings,
+    verify_model, 
+    )
 # 
 def main():
     parser = argparse.ArgumentParser(description="Semantic Search CLI")
@@ -30,7 +35,7 @@ def main():
             verify_embeddings()
         case 'embed_query':
             query = args.query
-            embed_text(query)
+            embed_query_text(query)
         case _:
             parser.print_help()
 
