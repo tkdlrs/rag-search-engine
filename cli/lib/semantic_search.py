@@ -55,6 +55,34 @@ class SemanticSearch:
         return self.build_embeddings(documents)
         # 
     #
+    def search(self, query, limit):
+        if self.embeddings is None:
+            raise ValueError("No embeddings loaded. Call `load_or_create_embeddings` first.")
+        # 
+        embedding = self.generate_embedding(query)
+        score_docs = []
+        for doc in self.documents:
+            similarity_score = cosine_similarity(doc, embedding)
+            score_doc = (similarity_score, doc)
+            score_docs.append(score_doc)
+        # 
+        score_docs.sort(reverse=True)
+        count = 0
+        results = []
+        for doc in score_docs:
+            if count >= limit:
+                break
+            # 
+            results.append({
+                "score": doc[0], 
+                "title": "tit",
+                "description": "des",
+                })
+            print(f"doc: {doc}")
+            count += 1
+        # 
+        return results
+    # 
     #  
 # 
 def verify_model():
@@ -82,6 +110,25 @@ def embed_query_text(query):
     print(f"Query: {query}")
     print(f"First 3 dimensions: {embedding[:3]}")
     print(f"Shape: {embedding.shape}")
+#
+def cosine_similarity(vec1, vec2):
+    dot_product = np.dot(vec1, vec2)
+    norm1 = np.linalg.norm(vec1) 
+    norm2 = np.linalg.norm(vec2) 
+    # 
+    if norm1 == 0 or norm2 == 0:
+        return 0.0
+    # 
+    return dot_product / (norm1 * norm2)
+    # 
+# 
+def search_command(query:str, limit:int):
+    search_instance = SemanticSearch()
+    documents = load_movies()
+    search_instance.load_or_create_embeddings(documents)
+    # 
+    results = search_instance.search(query, limit)
+    for count, result in enumerate(results, start=1):
+        print(f"{count} {result["title"]} (score:{result["score"]}) \n   {result["description"]})")
 
-# 
-# 
+#

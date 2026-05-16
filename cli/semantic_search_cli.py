@@ -3,11 +3,13 @@
 import argparse 
 # 
 from lib.semantic_search import (
+    search_command,
     embed_query_text,
     embed_text,
     verify_embeddings,
     verify_model, 
     )
+from lib.search_utils import ( DEFAULT_SEARCH_LIMIT)
 # 
 def main():
     parser = argparse.ArgumentParser(description="Semantic Search CLI")
@@ -23,6 +25,10 @@ def main():
     embed_query_parser = subparsers.add_parser("embed_query", help="Generate an embedding for a search query")
     embed_query_parser.add_argument("query", type=str, help="Query to embed")
     # 
+    search_parser = subparsers.add_parser("search", help="Search ")
+    search_parser.add_argument("query", type=str, help="Search query")
+    search_parser.add_argument("--limit", type=int, default=DEFAULT_SEARCH_LIMIT, help="limit")
+    #
     args = parser.parse_args()
     # 
     match args.command:
@@ -36,6 +42,10 @@ def main():
         case 'embed_query':
             query = args.query
             embed_query_text(query)
+        case 'search':
+            query = args.query
+            limit = args.limit
+            search_command(query, limit)
         case _:
             parser.print_help()
 
