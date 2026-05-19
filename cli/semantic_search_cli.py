@@ -29,9 +29,9 @@ def main():
     search_parser.add_argument("query", type=str, help="Search query")
     search_parser.add_argument("--limit", type=int, default=5, help="Number of results to return")
     #
-    chunk_parser = subparsers.add_parser("chunk", help="Takes a long query and chunks it into samller ones")
-    chunk_parser.add_argument("query", type=str, help="long string ")
-    chunk_parser.add_argument("--chunk-size", type=int, default=200, help="Number of words for each chunk")
+    chunk_parser = subparsers.add_parser("chunk", help="Spit text into fixed-size chunks")
+    chunk_parser.add_argument("text", type=str, help="Text to chunk")
+    chunk_parser.add_argument("--chunk-size", type=int, default=200, help="Size of each chunk in words")
     #
     args = parser.parse_args()
     # 
@@ -51,9 +51,9 @@ def main():
             limit = args.limit
             semantic_search(query, limit)
         case 'chunk':
-            query = args.query
+            text = args.text
             size = args.chunk_size 
-            chunk_command(query, size)
+            chunk_command(text, size)
         case _:
             parser.print_help()
 

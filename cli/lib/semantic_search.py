@@ -5,6 +5,7 @@ from sentence_transformers import SentenceTransformer
 # 
 from .search_utils import (
     CACHE_DIR,
+    DEFAULT_CHUNK_SIZE,
     DEFAULT_SEARCH_LIMIT,
     load_movies,
 )
@@ -138,19 +139,52 @@ def semantic_search(query:str, limit:int=DEFAULT_SEARCH_LIMIT):
         print(f"    {result["description"][:100]}...)")
         print()
 #
-def chunk_command(text:str, limit:int=200) -> list[str]:
-    white_space_split = text.split(" ")
-    results = []
+def chunk_command(text:str, chunk_size: int = DEFAULT_CHUNK_SIZE) -> list[str]:
+    words = text.split(" ")
+    chunks = []
     # 
-    for i in range(0, len(white_space_split), limit):
-       if (i + limit) < len(white_space_split):
-           results.append(white_space_split[i:i+limit]) 
+    for i in range(0, len(words), chunk_size):
+       if (i + chunk_size) < len(words):
+           chunks.append(words[i:i+chunk_size]) 
        else:
-           results.append(white_space_split[i:]) 
+           chunks.append(words[i:]) 
     # 
     print(f"Chunking {len(text)} characters")
-    for i, result in enumerate(results, 1):
+    for i, result in enumerate(chunks, 1):
         print(f"{i}. {" ".join(result)}")
     return
 #
+"""
+They did something very different for the 'chunking command'. 
+I'll put it here but I will not be using this janky approach, 
+unless there is a good reason too later in the course. 
+
+
+    WTF?! Did a clanker write this? 
+    It's Python just use the built in EVERYTHING. 
+    You don't need to do whatever the crap this is. 
+    Two (2) functions to split text into fixed length arrays of words? WHY?
+
+
+def fixed_size_chunking(text: str, chunk_size: int = DEFAULT_CHUNK_SIZE) -> list[str]:
+    words = text.split()
+    chunks = []
+
+    n_words = len(words)
+    i = 0
+    while i < n_words:
+        chunk_words = words[i : i + chunk_size]
+        chunks.append(" ".join(chunk_words))
+        i += chunk_size
+
+    return chunks
+
+
+def chunk_text(text: str, chunk_size: int = DEFAULT_CHUNK_SIZE) -> None:
+    chunks = fixed_size_chunking(text, chunk_size)
+    print(f"Chunking {len(text)} characters")
+    for i, chunk in enumerate(chunks):
+        print(f"{i + 1}. {chunk}")
+
+"""
 #
