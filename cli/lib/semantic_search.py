@@ -137,5 +137,20 @@ def semantic_search(query:str, limit:int=DEFAULT_SEARCH_LIMIT):
         print(f"{i}. {result["title"]} (score:{result["score"]:.4f})")
         print(f"    {result["description"][:100]}...)")
         print()
-
+#
+def chunk_command(text:str, limit:int=200) -> list[str]:
+    white_space_split = text.split(" ")
+    results = []
+    # 
+    for i in range(0, len(white_space_split), limit):
+       if (i + limit) < len(white_space_split):
+           results.append(white_space_split[i:i+limit]) 
+       else:
+           results.append(white_space_split[i:]) 
+    # 
+    print(f"Chunking {len(text)} characters")
+    for i, result in enumerate(results, 1):
+        print(f"{i}. {" ".join(result)}")
+    return
+#
 #

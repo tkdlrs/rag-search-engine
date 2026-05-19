@@ -8,6 +8,7 @@ from lib.semantic_search import (
     semantic_search,
     verify_embeddings,
     verify_model, 
+    chunk_command
     )
 # 
 def main():
@@ -28,6 +29,10 @@ def main():
     search_parser.add_argument("query", type=str, help="Search query")
     search_parser.add_argument("--limit", type=int, default=5, help="Number of results to return")
     #
+    chunk_parser = subparsers.add_parser("chunk", help="Takes a long query and chunks it into samller ones")
+    chunk_parser.add_argument("query", type=str, help="long string ")
+    chunk_parser.add_argument("--chunk-size", type=int, default=200, help="Number of words for each chunk")
+    #
     args = parser.parse_args()
     # 
     match args.command:
@@ -45,6 +50,10 @@ def main():
             query = args.query
             limit = args.limit
             semantic_search(query, limit)
+        case 'chunk':
+            query = args.query
+            size = args.chunk_size 
+            chunk_command(query, size)
         case _:
             parser.print_help()
 
