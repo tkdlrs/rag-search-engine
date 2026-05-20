@@ -139,15 +139,17 @@ def semantic_search(query:str, limit:int=DEFAULT_SEARCH_LIMIT):
         print(f"    {result["description"][:100]}...)")
         print()
 #
-def chunk_command(text:str, chunk_size: int = DEFAULT_CHUNK_SIZE) -> list[str]:
+def chunk_command(text:str, chunk_size: int = DEFAULT_CHUNK_SIZE, overlap: int = 0) -> list[str]:
     words = text.split(" ")
     chunks = []
     # 
     for i in range(0, len(words), chunk_size):
+       overlap_start = max(0, (i - overlap))
+        #    
        if (i + chunk_size) < len(words):
-           chunks.append(words[i:i+chunk_size]) 
+           chunks.append(words[overlap_start:i+chunk_size]) 
        else:
-           chunks.append(words[i:]) 
+           chunks.append(words[overlap_start:]) 
     # 
     print(f"Chunking {len(text)} characters")
     for i, result in enumerate(chunks, 1):
