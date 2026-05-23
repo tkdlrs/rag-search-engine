@@ -183,29 +183,35 @@ def semantic_chunk(
         overlap: int = DEFAULT_CHUNK_OVERLAP
 ) -> list[str]:
     text = text.strip()
-    if text is None or len(text) == 0:
+    if not text:
         return []
     # 
     sentences =  re.split(r"(?<=[.!?])\s+", text)
     # 
-    if len(sentences) == 1 and sentences[-1] not in ( ".", "!", "?"):
-        sentences[0] += "."
+    if len(sentences) == 1 and not text.endswith((".", "!", "?")):
+        sentences = [text]
     # 
     chunks = []
-    # 
     i = 0
     n_sentences = len(sentences)
+    # 
     while i < n_sentences:
         chunk_sentences = sentences[i : i + max_chunk_size]
         if chunks and len(chunk_sentences) <= overlap:
             break
         # 
-        joined_chunk = " ".join(chunk_sentences).strip()
-        # 
-        if len(joined_chunk) > 0:
-            chunks.append(joined_chunk)
-        # 
+        cleaned_sentences = []
+        for chunk_sentence in chunk_sentences:
+            chunk_sentence = chunk_sentence.strip()
+            if chunk_sentence:
+                cleaned_sentences.append(chunk_sentence)
+        if not cleaned_sentences:
+            i += max_chunk_size - overlap
+            continue
+        chunk = " ".join(cleaned_sentences)
+        chunks.append(chunk)
         i += max_chunk_size - overlap
+    # 
     return chunks      
 # 
 def semantic_chunk_text(
