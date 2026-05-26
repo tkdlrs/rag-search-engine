@@ -27,21 +27,21 @@ class HybridSearch:
         #
 
 # 
-def normalize_command(scores: list[int]) -> list[int]:
-    if not scores or len(scores) == 0:
+def normalize_scores(scores: list[float]) -> list[float]:
+    if not scores:
         return []
     # 
     min_score = min(scores)
     max_score = max(scores)
-    results = []
     # 
-    for score in scores: 
-        if min_score == max_score:
-            results.append(1.0)
-            continue
-        result = (score - min_score) / (max_score - min_score)
-        results.append(result)
+    if min_score == max_score:
+            return [1.0] * len(scores)
     # 
-    return results
+    normalized_scores = []
+    for s in scores: 
+        result = (s - min_score) / (max_score - min_score)
+        normalized_scores.append(result)
+    # 
+    return normalized_scores
     #
 # 
