@@ -39,7 +39,7 @@ def main() -> None:
     rrf_parser.add_argument(
         "--enhance",
         type=str,
-        choices=["spell", "rewrite"],
+        choices=["spell", "rewrite", "expand"],
         help="Query enhancement method",
     )
     # 
@@ -94,7 +94,7 @@ def main() -> None:
                 if ranks:
                     print(f"   {', '.join(ranks)}")
                 print(f"   {res['document'][:100]}...")
-                print()
+                print("")
         # 
         case _:
             parser.print_help()
