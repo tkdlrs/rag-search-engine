@@ -66,8 +66,8 @@ def expand_query(query: str) -> str:
     """
     # 
     response = client.models.generate_content(model=model, contents=prompt)
-    expanded = (response.text).strip().strip('"')
-    return expanded  if expanded else query 
+    expanded_terms = (response.text or "").strip().strip('"')
+    return f"{query} {expanded_terms}".strip() 
 #  
 # 
 def enhance_query(query:str, method: Optional[str] = None) -> str:
