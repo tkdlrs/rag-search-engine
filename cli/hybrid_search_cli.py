@@ -71,7 +71,12 @@ def main() -> None:
                 print()
         #  
         case "rrf-search":
-            result = rrf_search_command(args.query, args.k, args.limit, args.enhance)
+            result = rrf_search_command(args.query, args.k, args.enhance, args.limit)
+            # 
+            if result["enhanced_query"]:
+                print(
+                    f"Enhanced query ({result['enhance_method']}): '{result['original_query']}' -> '{result['enhanced_query']}'\n"
+                )
             # 
             print(
                 f"Reciprocal Rank Fusion Results for '{result['query']}' (k={result['k']}):"
@@ -90,10 +95,6 @@ def main() -> None:
                     print(f"   {', '.join(ranks)}")
                 print(f"   {res['document'][:100]}...")
                 print()
-            # 
-            print(
-                f"Enhanced query ({result['method']}): '{result['original_query']}' -> '{result['query']}'\n"
-            )
         # 
         case _:
             parser.print_help()

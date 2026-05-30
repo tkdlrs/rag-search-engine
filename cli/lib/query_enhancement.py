@@ -1,6 +1,7 @@
 import os 
-from dotenv import load_dotenv
+from typing import Optional 
 # 
+from dotenv import load_dotenv
 from google import genai
 # 
 load_dotenv()
@@ -8,9 +9,10 @@ api_key = os.environ.get("GEMINI_API_KEY")
 if not api_key:
     raise RuntimeError("GEMINI_API_KEY environment variable not set")
 # 
-def llm_spell_check(query:str) -> str:
-    client = genai.Client(api_key=api_key)
-    model = "gemma-4-31b-it"
+client = genai.Client(api_key=api_key)
+model = "gemma-4-31b-it"
+# 
+def spell_correct(query:str) -> str:
     prompt = f"""Fix any spelling errors in the user-provided movie search query below.
     Correct only clear, high-confidence typos. Do not rewrite, add, remove, or reorder words.
     Preserve punctuation and capitalization unless a change is required for a typo fix.
@@ -19,9 +21,16 @@ def llm_spell_check(query:str) -> str:
     User query: "{query}"
     """
     # 
-    response = client.models.generate_content(model=model, contents=prompt)
-    assert response.usage_metadata is not None
-    # 
-    return response.text
+    response = client.models.generate_content(model=model, contents=prompt) 
+    corrected = (response.text or "").strip().strip('"')
+    return corrected if corrected else query 
+# 
+def enhance_query(query:str, method: Optional[str] = None) -> str:
+    match method:
+        case "spell":
+            return spell_correct(query) 
+        # 
+        case _:
+            return query
     # 
 # 
