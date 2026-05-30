@@ -25,7 +25,7 @@ def spell_correct(query: str) -> str:
     corrected = (response.text or "").strip().strip('"')
     return corrected if corrected else query 
 #
-def rewritten(query: str) -> str:
+def rewrite_query(query: str) -> str:
     prompt = f"""Rewrite the user-provided movie search query below to be more specific and searchable.
 
     Consider:
@@ -47,8 +47,8 @@ def rewritten(query: str) -> str:
     """
     # 
     response = client.models.generate_content(model=model, contents=prompt)
-    changed = (response.text or "").strip().strip('"')
-    return  changed if changed else query
+    rewritten = (response.text or "").strip().strip('"')
+    return  rewritten if rewritten else query
 #  
 def enhance_query(query:str, method: Optional[str] = None) -> str:
     match method:
@@ -56,7 +56,7 @@ def enhance_query(query:str, method: Optional[str] = None) -> str:
             return spell_correct(query) 
         #
         case "rewrite":
-            return rewritten(query)
+            return rewrite_query(query)
         #  
         case _:
             return query
