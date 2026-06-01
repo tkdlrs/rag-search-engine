@@ -68,6 +68,32 @@ def expand_query(query: str) -> str:
     response = client.models.generate_content(model=model, contents=prompt)
     expanded_terms = (response.text or "").strip().strip('"')
     return f"{query} {expanded_terms}".strip() 
+# 
+# 
+def rerank(query:str, doc:dict):
+    prompt = f"""Rate how well this movie matches the search query.
+
+    Query: "{query}"
+    Movie: {doc.get("title", "")} - {doc.get("document", "")}
+
+    Consider:
+    - Direct relevance to query
+    - User intent (what they're looking for)
+    - Content appropriateness
+
+    Rate 0-10 (10 = perfect match).
+    Output ONLY the number in your response, no other text or explanation.
+
+    Score:"""
+    # 
+    response = client.models.generate_content(model=model, contents=prompt)
+    new_rank = (response.text or "").strip().strip('"')
+    new_rank = int(new_rank) 
+    # 
+    assert new_rank < 0 and new_rank >= 10 
+    # 
+    return new_rank
+    
 #  
 # 
 def enhance_query(query:str, method: Optional[str] = None) -> str:

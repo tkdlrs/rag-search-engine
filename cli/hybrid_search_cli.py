@@ -1,10 +1,14 @@
 import argparse 
+import time 
 # 
 from lib.hybrid_search import (
     normalize_scores, 
     rrf_search_command,
     weighted_search_command,
 ) 
+from lib.query_enhancement import (
+    rerank
+)
 #
 def main() -> None: 
     parser = argparse.ArgumentParser(description="Hybrid Search CLI")
@@ -42,6 +46,12 @@ def main() -> None:
         choices=["spell", "expand", "rewrite"],
         help="Query enhancement method",
     )
+    rrf_parser.add_argument(
+        "--rerank-method",
+        type=str,
+        choices=["individual"],
+        help="Rerank query method",
+    )
     # 
     args = parser.parse_args()
     #
@@ -71,7 +81,23 @@ def main() -> None:
                 print()
         #  
         case "rrf-search":
-            result = rrf_search_command(args.query, args.k, args.enhance, args.limit)
+            limit = args.limit
+            rerank_method = args.rerank_method
+            query = args.query
+            # 
+            if rerank_method == "invididual":
+                limit *= 5
+            # 
+            result = rrf_search_command(query, args.k, args.enhance, limit)
+            for i, res in enumerate(result["results"]):
+                re_rank = rerank(query, res)
+                result["results"][i]["rerank_score"] = re_rank
+                time.sleep(3)
+            # 
+            re_ranked_results = sorted(result["results"], key=lambda x: x["rerank_score"], reverse=True)
+            
+
+
             # 
             if result["enhanced_query"]:
                 print(
@@ -82,8 +108,13 @@ def main() -> None:
                 f"Reciprocal Rank Fusion Results for '{result['query']}' (k={result['k']}):"
             )
             # 
-            for i, res in enumerate(result["results"], 1):
+            # for i, res in enumerate(result["results"], 1):
+            for i, res in enumerate(re_ranked_results, 1):
+                if i + 1 == limit:
+                    break
+                # 
                 print(f"{i}. {res['title']}")
+                print(f"   Re-rank Score: {res.get('rerank_score', 0):.3f}")
                 print(f"   RRF Score: {res.get('score', 0):.3f}")
                 metadata = res.get("metadata", {})
                 ranks = []
@@ -102,4 +133,3 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
-# 
