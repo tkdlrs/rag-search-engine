@@ -44,11 +44,21 @@ def llm_rerank_individual(
     scored_docs.sort(key=lambda x: x["individual_score"], reverse=True)
     return scored_docs[:limit]
 #
-def llm_rerank_batch(
-          query: str, documents: list[dict], limit: int = 5
-) -> list[dict]:
-    scored_docs = []
-    doc_list_str = json.dumps(documents)
+
+def llm_rerank_batch( query: str, documents: list[dict], limit: int = 5) -> list[dict]:
+    if not documents:
+         return []
+    # 
+    doc_map = {}
+    doc_list = []
+    for doc in documents:
+         doc_id = doc["id"]
+         doc_map[doc_id] = doc 
+         doc_list.append(
+              f"{doc_id}: {doc.get('title', '')} - {doc.get('document', '')[:200]}"
+         )
+    # 
+    doc_list_str = "\n".join(doc_list) 
     #  
     prompt = f"""Rank the movies listed below by relevance to the following search query.
 
@@ -69,22 +79,24 @@ def llm_rerank_batch(
     Ranking:"""
     # 
     response = client.models.generate_content(model=model, contents=prompt)
-    parsed_reponse = json.loads((response.text or "").strip())
-    print(parsed_reponse)
-    for rank, movieId in enumerate(parsed_reponse, 1):
-         matching_doc = next((item for item in documents['id'] if documents['id'] == movieId), None)
-         scored_docs.append({**matching_doc, "batch_rank": rank})        
+    reranking_text = (response.text or "").strip()
+    # 
+    parsed_ids = json.loads(reranking_text)
+    # 
+    reranked = []
+    for i, doc_id in enumerate(parsed_ids, 1):
+         if doc_id in doc_map:
+              reranked.append({**doc_map[doc_id], "batch_rank": i})        
     #
-    scored_docs.sort(key=lambda x:x["batch_rank"])
-    return scored_docs[:limit]
-       
+    return reranked[:limit]
+# 
 #  
 def rerank(
           query: str, documents: list[dict], method: str = "batch", limit: int = 5
 ) -> list[dict]:
      if method == "individual":
           return llm_rerank_individual(query, documents, limit)
-     elif method == "batch":
+     if method == "batch":
           return llm_rerank_batch(query, documents, limit)
      else: 
           return documents[:limit]
