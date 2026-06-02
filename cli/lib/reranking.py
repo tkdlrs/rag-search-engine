@@ -1,5 +1,6 @@
 import os 
 from time import sleep
+import json
 # 
 from dotenv import load_dotenv
 from google import genai
@@ -43,12 +44,48 @@ def llm_rerank_individual(
     scored_docs.sort(key=lambda x: x["individual_score"], reverse=True)
     return scored_docs[:limit]
 #
+def llm_rerank_batch(
+          query: str, documents: list[dict], limit: int = 5
+) -> list[dict]:
+    scored_docs = []
+    doc_list_str = json.dumps(documents)
+    #  
+    prompt = f"""Rank the movies listed below by relevance to the following search query.
+
+    Query: "{query}"
+
+    Movies:
+    {doc_list_str}
+
+    Return the movie IDs in order of relevance, best match first.
+
+    Your response must be a raw JSON array of integers.
+    Do not wrap the JSON in Markdown. Do not use a ```json code block.
+    Do not include any explanatory text.
+
+    For example:
+    [75, 12, 34, 2, 1]
+
+    Ranking:"""
+    # 
+    response = client.models.generate_content(model=model, contents=prompt)
+    parsed_reponse = json.loads((response.text or "").strip())
+    print(parsed_reponse)
+    for rank, movieId in enumerate(parsed_reponse, 1):
+         matching_doc = next((item for item in documents['id'] if documents['id'] == movieId), None)
+         scored_docs.append({**matching_doc, "batch_rank": rank})        
+    #
+    scored_docs.sort(key=lambda x:x["batch_rank"])
+    return scored_docs[:limit]
+       
 #  
 def rerank(
           query: str, documents: list[dict], method: str = "batch", limit: int = 5
 ) -> list[dict]:
      if method == "individual":
           return llm_rerank_individual(query, documents, limit)
+     elif method == "batch":
+          return llm_rerank_batch(query, documents, limit)
      else: 
           return documents[:limit]
 # 
