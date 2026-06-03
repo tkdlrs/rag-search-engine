@@ -1,9 +1,14 @@
 import os 
-from time import sleep
 import json
+from time import sleep
+from typing import Literal
 # 
 from dotenv import load_dotenv
 from google import genai
+from sentence_transformers import CrossEncoder
+# 
+from .search_utils import SearchResult
+
 # 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -12,12 +17,13 @@ if not api_key:
 # 
 client = genai.Client(api_key=api_key)
 model = "gemma-4-31b-it"
+cross_encoder = CrossEncoder("cross-encoder/ms-marco-TinyBERT-L2-v2")
 # 
 # 
 def llm_rerank_individual(
-        query: str, documents: list[dict], limit: int = 5
-) -> list[dict]:
-    scored_docs = []
+        query: str, documents: list[SearchResult], limit: int = 5
+) -> list[dict[str, object]]:
+    scored_docs: list[dict[str, object]] = []
     # 
     for doc in documents:
           prompt = f"""Rate how well this movie matches the search query.
@@ -44,13 +50,15 @@ def llm_rerank_individual(
     scored_docs.sort(key=lambda x: x["individual_score"], reverse=True)
     return scored_docs[:limit]
 #
-
-def llm_rerank_batch( query: str, documents: list[dict], limit: int = 5) -> list[dict]:
+# 
+def llm_rerank_batch( 
+          query: str, documents: list[SearchResult], limit: int = 5
+) -> list[dict]:
     if not documents:
          return []
     # 
-    doc_map = {}
-    doc_list = []
+    doc_map: dict[int, SearchResult] = {}
+    doc_list: list[str] = []
     for doc in documents:
          doc_id = doc["id"]
          doc_map[doc_id] = doc 
@@ -83,21 +91,42 @@ def llm_rerank_batch( query: str, documents: list[dict], limit: int = 5) -> list
     # 
     parsed_ids = json.loads(reranking_text)
     # 
-    reranked = []
+    reranked: list[dict[str, object]] = []
     for i, doc_id in enumerate(parsed_ids, 1):
          if doc_id in doc_map:
               reranked.append({**doc_map[doc_id], "batch_rank": i})        
     #
     return reranked[:limit]
-# 
+#
+#  
+def cross_encoder_rerank( 
+          query: str, documents: list[SearchResult], limit: int = 5
+) -> list[dict[str, object]]:
+     pairs: list[list[str]] = []
+     reranked_documents: list[dict[str, object]] = [dict(doc) for doc in documents]
+     for doc in documents:
+          pairs.append([query, f"{doc.get('title', '')} - {doc.get('document', '')}"])
+     #
+     scores  = cross_encoder.predict(pairs)
+     # 
+     for doc, score in zip(reranked_documents, scores):
+          doc["crossencoder_score"] = float(score)
+     # 
+     reranked_documents.sort(key=lambda x: float(x["crossencoder_score"]), reverse=True)
+     return reranked_documents[:limit]
 #  
 def rerank(
-          query: str, documents: list[dict], method: str = "batch", limit: int = 5
-) -> list[dict]:
+          query: str, 
+          documents: list[dict], 
+          method: Literal["individual", "batch", "cross_encoder"] = "batch", 
+          limit: int = 5
+) -> list[dict[str, object]]:
      if method == "individual":
           return llm_rerank_individual(query, documents, limit)
      if method == "batch":
           return llm_rerank_batch(query, documents, limit)
+     if method == "cross_encoder":
+          return cross_encoder_rerank(query, documents, limit)
      else: 
           return documents[:limit]
 # 
