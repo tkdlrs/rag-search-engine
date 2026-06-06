@@ -88,7 +88,8 @@ def main() -> None:
             result = rrf_search_command(
                 args.query, args.k, args.enhance, args.rerank_method, args.limit
             )
-            # 
+            #
+            print("======================================================================") 
             if result["enhanced_query"]:
                 print(
                     f"Enhanced query ({result['enhance_method']}): '{result['original_query']}' -> '{result['enhanced_query']}'\n"
@@ -102,6 +103,7 @@ def main() -> None:
             print(
                 f"Reciprocal Rank Fusion Results for '{result['query']}' (k={result['k']}):"
             )
+            print("======================================================================") 
             # 
             for i, res in enumerate(result["results"], 1):
                 print(f"{i}. {res['title']}")
