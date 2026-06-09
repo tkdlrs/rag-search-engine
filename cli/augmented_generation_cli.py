@@ -1,5 +1,6 @@
 import argparse
-from lib.rag import rag_command 
+# 
+from lib.augmented_generation import rag_command 
 # 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Retrieval Augmented Generation CLI")
@@ -14,13 +15,13 @@ def main() -> None:
     # 
     match args.command:
         case "rag":
-            query = args.query
-            results = rag_command(query)
-            print("Search Results")
-            for result in results["results"]:
-                print(f"   - {result["title"]}")
-            print("RAG Response")
-            print(f"< {results["response"]} >")
+            result = rag_command(args.query)
+            print("Search Results:")
+            for document in result["search_results"]:
+                print(f"   - {document["title"]}")
+            print()
+            print("RAG Response:")
+            print(result["answer"])
         case _:
             parser.print_help()
     # 

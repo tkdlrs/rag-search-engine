@@ -58,7 +58,7 @@ class HybridSearch:
         combined = combine_search_results(bm25_results, semantic_results, alpha)
         return combined[:limit]
     #
-    def rrf_search(self, query: str, k: int = RRF_K, limit: int = 10) -> list[SearchResult]:
+    def rrf_search(self, query: str, k: int, limit: int = 10) -> list[SearchResult]:
         bm25_results = self._bm25_search(query, limit * 500)
         semantic_results = self.semantic_search.search_chunks(query, limit * 500)
         # 
