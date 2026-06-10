@@ -1,6 +1,9 @@
 import argparse
 # 
-from lib.augmented_generation import rag_command 
+from lib.augmented_generation import (
+    rag_command,
+    llm_summarization_command
+) 
 # 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Retrieval Augmented Generation CLI")
@@ -10,6 +13,15 @@ def main() -> None:
         "rag", help="Perform RAG (search + generate answer)"
     )
     rag_parser.add_argument("query", type=str, help="Search query for RAG")
+    # 
+    summarize_parser = subparsers.add_parser(
+        "summarize", help="Use LLM to summarize results"
+    )
+    summarize_parser.add_argument("query", type=str, help="Search query")
+    summarize_parser.add_argument(
+        "--limit", type=int, default=5, help="limit query results (default=5)"
+    )
+
     # 
     args = parser.parse_args()
     # 
@@ -22,6 +34,15 @@ def main() -> None:
             print()
             print("RAG Response:")
             print(result["answer"])
+        case "summarize":
+            result = llm_summarization_command(args.query, args.limit)
+            print("Search Results:")
+            for document in result["search_results"]:
+                print(f"   - {document["title"]}")
+            print()
+            print("LLM Summary")
+            print(result['summary'])
+
         case _:
             parser.print_help()
     # 
