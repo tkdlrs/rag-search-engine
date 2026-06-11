@@ -1,4 +1,5 @@
 import os 
+from typing import TypedDict
 # 
 from dotenv import load_dotenv
 from google import genai
@@ -6,10 +7,58 @@ from google import genai
 from .hybrid_search import HybridSearch 
 from .search_utils import (
     DEFAULT_SEARCH_LIMIT,
+    Movie,
     RRF_K,
+    SearchResult,
     SEARCH_MULTIPLIER,
     load_movies, 
 )
+# 
+# 
+class RagErrorResult(TypedDict):
+    query: str
+    search_results: list[SearchResult] 
+    error: str
+# 
+# 
+class RagResult(TypedDict):
+    query: str 
+    search_results: list[SearchResult] 
+    answer: str
+# 
+# 
+class SummaryResult(TypedDict):
+    query: str 
+    summary: str
+    search_results: list[SearchResult] 
+# 
+# 
+class SummaryErrorResult(TypedDict):
+    query: str
+    error: str
+# 
+# 
+class CitationResult(TypedDict):
+    query: str
+    answer: str
+    search_results: list[SearchResult]
+# 
+# 
+class CitationErrorResult(TypedDict):
+    query: str
+    error: str
+# 
+# 
+class QuestionResult(TypedDict):
+    question: str
+    answer: str
+    search_results: list[SearchResult]
+# 
+# 
+class QuestionErrorResult(TypedDict):
+    question: str
+    error: str
+# 
 # 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -20,7 +69,9 @@ client = genai.Client(api_key=api_key)
 model = "gemma-4-31b-it"
 # 
 #
-def generate_answer(search_results, query, limit=5):
+def generate_answer(
+        search_results: list[SearchResult], query: str, limit: int = 5
+) -> str:
     context = ""
     # 
     for result in search_results[:limit]:
@@ -41,7 +92,9 @@ def generate_answer(search_results, query, limit=5):
     return (response.text or "").strip()
 #
 # 
-def generate_answer_with_citations(search_results, query, limit=5):
+def generate_answer_with_citations(
+        search_results: list[SearchResult], query: str, limit: int = 5
+) -> str:
     context = ""
     # 
     for i, result in enumerate(search_results[:limit], start=1):
@@ -71,33 +124,9 @@ def generate_answer_with_citations(search_results, query, limit=5):
     return (response.text or "").strip()
 # 
 # 
-def answer_question(search_results, question, limit=5):
-    context = ""
-    # 
-    for i, result in enumerate(search_results[:limit], start=1):
-        context += f"Document {i}: {result['title']}; {result['document']}\n\n"
-    # 
-    prompt = f"""Answer the user's question based on the provided movies that are available on Hoopla, a streaming service.
-
-    Question: {question}
-
-    Documents:
-    {context}
-
-    Instructions:
-    - Answer questions directly and concisely
-    - Be casual and conversational
-    - Don't be cringe or hype-y
-    - Talk like a normal person would in a chat conversation
-    - Use additional sources as necessary to provide direct answers to factual questions 
-
-    Answer:"""
-    # 
-    response = client.models.generate_content(model=model, contents=prompt)
-    # 
-    return (response.text or "").strip()#  
-# 
-def multi_document_summary(search_results, query, limit=5):
+def multi_document_summary(
+        search_results: list[SearchResult], query: str, limit: int = 5
+) -> str:
     docs_text = ""
     for i, result in enumerate(search_results[:limit], start=1):
         docs_text += f"Document {i}: {result['title']}; {result['document']}\n\n"
@@ -119,8 +148,36 @@ def multi_document_summary(search_results, query, limit=5):
     response = client.models.generate_content(model=model, contents=prompt)
     return (response.text or "").strip()
 # 
+#
+def answer_question(
+        search_results: list[SearchResult], question: str, limit: int = 5
+) -> str:
+    context = ""
+    # 
+    for i, result in enumerate(search_results[:limit], start=1):
+        context += f"Document {i}: {result['title']}; {result['document']}\n\n"
+    # 
+    prompt = f"""Answer the user's question based on the provided movies that are available on Hoopla, a streaming service.
+
+    Question: {question}
+
+    Documents:
+    {context}
+
+    Instructions:
+    - Answer questions directly and concisely
+    - Be casual and conversational
+    - Don't be cringe or hype-y
+    - Talk like a normal person would in a chat conversation 
+    - Use additional sources as necessary to provide direct answers to factual questions
+
+    Answer:"""
+    # 
+    response = client.models.generate_content(model=model, contents=prompt)
+    return (response.text or "").strip()#  
 # 
-def rag(query, limit=DEFAULT_SEARCH_LIMIT):
+#  
+def rag(query: str, limit: int = DEFAULT_SEARCH_LIMIT) -> RagResult | RagErrorResult:
     movies = load_movies()
     hybrid_search = HybridSearch(movies)
     # 
@@ -144,11 +201,11 @@ def rag(query, limit=DEFAULT_SEARCH_LIMIT):
     }
 # 
 # 
-def rag_command(query: str):
+def rag_command(query: str) -> RagResult | RagErrorResult:
    return rag(query)
 # 
 # 
-def summarize_command(query, limit=DEFAULT_SEARCH_LIMIT):
+def summarize_command(query: str, limit: int = DEFAULT_SEARCH_LIMIT) -> SummaryResult | SummaryErrorResult:
         movies = load_movies()
         hybrid_search = HybridSearch(movies)
         # 
@@ -168,7 +225,9 @@ def summarize_command(query, limit=DEFAULT_SEARCH_LIMIT):
         }
 # 
 # 
-def citations_command(query, limit=DEFAULT_SEARCH_LIMIT):
+def citations_command(
+        query: str, limit: int = 5
+) -> CitationResult | CitationErrorResult:
     movies = load_movies()
     hybrid_search = HybridSearch(movies)
     # 
@@ -188,21 +247,21 @@ def citations_command(query, limit=DEFAULT_SEARCH_LIMIT):
     } 
 # 
 # 
-def answer_question_command(query, limit=DEFAULT_SEARCH_LIMIT): 
+def question_command(
+        question: str, limit: int = 5
+) -> QuestionResult | QuestionErrorResult: 
     movies = load_movies()
     hybrid_search = HybridSearch(movies)
     # 
-    search_results = hybrid_search.rrf_search(
-        query, k=RRF_K, limit=limit * SEARCH_MULTIPLIER
-    )
+    search_results = hybrid_search.rrf_search(question, k=RRF_K)
     # 
     if not search_results:
-        return { "query" : query, "error": "No results found" }
+        return { "question" : question, "error": "No results found" }
     #
-    result = answer_question(search_results, query, limit)
+    result = answer_question(search_results, question, limit)
     # 
     return {
-        "query": query, 
+        "question": question, 
         "answer": result,
         "search_results": search_results[:limit],
     }

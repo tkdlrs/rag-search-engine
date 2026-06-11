@@ -4,7 +4,7 @@ from lib.augmented_generation import (
     citations_command,
     rag_command, 
     summarize_command,
-    answer_question_command,
+    question_command,
 ) 
 #
 #  
@@ -40,14 +40,12 @@ def main() -> None:
         "--limit", type=int, default=5, help="Maximum number of documents to use",
     )
     # 
-    answer_question_parser = subparsers.add_parser(
-        "question", help="Ask a question have RAG return an answer"
+    question_parser = subparsers.add_parser(
+        "question", help="Answer a question directly and concisely"
     )
-    answer_question_parser.add_argument(
-        "question", type=str, help="Question being asked"
-    )
-    answer_question_parser.add_argument(
-        "--limit", type=int, default=5, help="Maximum number to use",
+    question_parser.add_argument("question", type=str, help="Question to answer")
+    question_parser.add_argument(
+        "--limit", type=int, default=5, help="Maximum number of documents to use",
     )
     # 
     args = parser.parse_args()
@@ -78,13 +76,12 @@ def main() -> None:
             print("LLM Answer")
             print(result['answer'])
         case "question":
-            result = answer_question_command(args.question, args.limit)
+            result = question_command(args.question, args.limit)
             print("Search Results:")
             for document in result["search_results"]:
                 print(f"   - {document["title"]}")
             print()
-            print("Answer:")
-            print(result['answer'])
+            print(f"Answer: {result['answer']}")
         case _:
             parser.print_help()
     # 
