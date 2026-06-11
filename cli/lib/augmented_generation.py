@@ -69,7 +69,33 @@ def generate_answer_with_citations(search_results, query, limit=5):
     response = client.models.generate_content(model=model, contents=prompt)
     # 
     return (response.text or "").strip()
-#  
+# 
+# 
+def answer_question(search_results, question, limit=5):
+    context = ""
+    # 
+    for i, result in enumerate(search_results[:limit], start=1):
+        context += f"Document {i}: {result['title']}; {result['document']}\n\n"
+    # 
+    prompt = f"""Answer the user's question based on the provided movies that are available on Hoopla, a streaming service.
+
+    Question: {question}
+
+    Documents:
+    {context}
+
+    Instructions:
+    - Answer questions directly and concisely
+    - Be casual and conversational
+    - Don't be cringe or hype-y
+    - Talk like a normal person would in a chat conversation
+    - Use additional sources as necessary to provide direct answers to factual questions 
+
+    Answer:"""
+    # 
+    response = client.models.generate_content(model=model, contents=prompt)
+    # 
+    return (response.text or "").strip()#  
 # 
 def multi_document_summary(search_results, query, limit=5):
     docs_text = ""
@@ -93,7 +119,6 @@ def multi_document_summary(search_results, query, limit=5):
     response = client.models.generate_content(model=model, contents=prompt)
     return (response.text or "").strip()
 # 
-
 # 
 def rag(query, limit=DEFAULT_SEARCH_LIMIT):
     movies = load_movies()
@@ -162,4 +187,24 @@ def citations_command(query, limit=DEFAULT_SEARCH_LIMIT):
         "search_results": search_results,
     } 
 # 
- 
+# 
+def answer_question_command(query, limit=DEFAULT_SEARCH_LIMIT): 
+    movies = load_movies()
+    hybrid_search = HybridSearch(movies)
+    # 
+    search_results = hybrid_search.rrf_search(
+        query, k=RRF_K, limit=limit * SEARCH_MULTIPLIER
+    )
+    # 
+    if not search_results:
+        return { "query" : query, "error": "No results found" }
+    #
+    result = answer_question(search_results, query, limit)
+    # 
+    return {
+        "query": query, 
+        "answer": result,
+        "search_results": search_results[:limit],
+    }
+# 
+# 
