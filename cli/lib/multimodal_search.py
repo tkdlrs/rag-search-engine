@@ -1,22 +1,29 @@
 import os
+from typing import Any
 # 
 from PIL import Image
+from numpy.typing import NDArray
 from sentence_transformers import SentenceTransformer
+#
 # 
 class MultimodalSearch:
-    def __init__(self, model_name="clip-ViT-B-32"):
+    def __init__(
+            self, documents: list[object] | None = None, model_name: str = "clip-ViT-B-32"
+    ) -> None:
+        if documents is None:
+            documents = []
         self.model = SentenceTransformer(model_name)
     # 
-    def embed_image(self, image_path: str):
+    def embed_image(self, image_path: str) -> NDArray[Any]:
          if not os.path.exists(image_path):
              raise FileNotFoundError(f"Image file not found: {image_path}")
-         #  
          image = Image.open(image_path)
-         return self.model.encode([image])[0]
+         image_embedding = self.model.encode([image]) # type: ignore[arg-type]
+         return image_embedding[0]
 #         
 # 
-def verify_image_embedding(image_path):
-    multimodalSearch = MultimodalSearch()
-    embedding = multimodalSearch.embed_image(image_path)
+def verify_image_embedding(image_path: str) -> None:
+    searcher = MultimodalSearch()
+    embedding = searcher.embed_image(image_path)
     print(f"Embedding shape: {embedding.shape[0]} dimensions")
 
