@@ -14,21 +14,25 @@ def main() -> None:
     )
     verify_image_parser.add_argument("image", type=str, help="Path to image file")
     # 
-    search_image_parser = subparsers.add_parser(
-        "image_search", help="searach image"
+    search_parser = subparsers.add_parser(
+        "image_search", help="Search documents using an image"
     )
-    search_image_parser.add_argument("image", type=str, help="Path to image file")
+    search_parser.add_argument("image", type=str, help="Path to image file")
     # 
     args = parser.parse_args()
     #
     match args.command:
-        case 'verify_image_embedding':
+        case "verify_image_embedding":
             verify_image_embedding(args.image)
-        case 'image_search':
-            results = image_search_command(args.image)
-            for i, result in enumerate(results, 1):
-                print(f"{i}.   {result['title']} (similarity: {result['similarity_score']:.4f})")
-                print(f"     {result['description'][:100]}")
+        case "image_search":
+            result = image_search_command(args.image)
+            # 
+            print(f"Image search results for: {result['image_path']}")
+            print("=" * 60)
+            # 
+            for i, res in enumerate(result["results"], 1):
+                print(f"{i}.   {res['title']} (similarity: {res['score']:.3f})")
+                print(f"     {res['document'][:100]}...")
                 print()
 
         case _:

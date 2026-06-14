@@ -5,8 +5,8 @@ from PIL import Image
 from numpy.typing import NDArray
 from sentence_transformers import SentenceTransformer
 # 
-from lib.search_utils import Movie, load_movies
-from lib.semantic_search import cosine_similarity
+from .search_utils import Movie, SearchResult, format_search_result, load_movies
+from .semantic_search import cosine_similarity
 #
 # 
 class MultimodalSearch:
@@ -30,26 +30,26 @@ class MultimodalSearch:
          image_embedding = self.model.encode([image]) # type: ignore[arg-type]
          return image_embedding[0]
     # 
-    def search_with_image(self, image_path: str) -> list[dict]:
+    def search_with_image(self, image_path: str, limit: int = 5) -> list[SearchResult]:
         image_embedding = self.embed_image(image_path)
         # 
-        similarities: list[tuple[float, Movie]] = []
+        similarities: list[tuple[int, Movie]] = []
         for i, text_embedding in enumerate(self.text_embeddings):
-            similarity = cosine_similarity(text_embedding, image_embedding )
-            similarities.append((similarity, self.documents[i]))
-        #          
-        similarities.sort(key=lambda x: x[0], reverse=True)
+            similarity = cosine_similarity(image_embedding, text_embedding)
+            similarities.append((i, similarity))
+        similarities.sort(key=lambda x: x[1], reverse=True)
         # 
-        results = []
-        for i, similarity in enumerate(similarities):
-            if i >= 5: break
-            # 
-            results.append({  
-                "id": similarity[1]["id"],
-                "title": similarity[1]["title"],
-                "description": similarity[1]["description"],
-                "similarity_score": similarity[0],
-            })
+        results: list[SearchResult] = []
+        for idx, score in similarities[:limit]:
+            doc = self.documents[idx]
+            results.append(
+                format_search_result(  
+                    doc_id=doc["id"],
+                    title=doc["title"],
+                    document=doc["description"][:100],
+                    score=score,
+                )
+            )
         # 
         return results
 #         
@@ -60,9 +60,16 @@ def verify_image_embedding(image_path: str) -> None:
     print(f"Embedding shape: {embedding.shape[0]} dimensions")
 # 
 # 
-def image_search_command(image_path: str) -> list[object]:
+def image_search_command(
+        image_path: str = "data/paddington.jpeg", limit: int = 5
+) -> dict[str, str | list[SearchResult]]:
+    if not os.path.exists(image_path):
+        raise FileNotFoundError(f"Image file not found: {image_path}")
+    # 
     movies = load_movies()
     searcher = MultimodalSearch(movies)
-    return searcher.search_with_image(image_path)
+    results = searcher.search_with_image(image_path, limit)
+    # 
+    return {"image_path": image_path, "results": results} 
 # 
 # 
