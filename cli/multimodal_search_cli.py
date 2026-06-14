@@ -19,8 +19,7 @@ def main() -> None:
         case 'verify_image_embedding':
             if not os.path.exists(args.image):
                 raise FileNotFoundError(f"Image file not found: {args.image}")
-            res = verify_image_embedding(args.image)
-            print(res)
+            verify_image_embedding(args.image)
         # 
         case _:
             parser.print_help()

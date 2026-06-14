@@ -12,10 +12,11 @@ class MultimodalSearch:
              raise FileNotFoundError(f"Image file not found: {image_path}")
          #  
          image = Image.open(image_path)
-         return self.model.encode(image)[0]
+         return self.model.encode([image])[0]
 #         
 # 
 def verify_image_embedding(image_path):
     multimodalSearch = MultimodalSearch()
     embedding = multimodalSearch.embed_image(image_path)
     print(f"Embedding shape: {embedding.shape[0]} dimensions")
+
